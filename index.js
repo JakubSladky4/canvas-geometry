@@ -52,3 +52,6 @@ console.log(line.getInterPolationRate(intersectionPoint));
 console.log(line2.getIntersectionBetweenStartAndEndOfLine(line));
 
 //draw point
+const vector = line2.vector;
+const vector2 = line.vector;
+console.log(vector.minus({ x: 0, y: 0 }));

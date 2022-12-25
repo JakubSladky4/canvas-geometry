@@ -42,6 +42,8 @@ class Line {
   }
 
   isLyingOnLine(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
     const generalEquation = this.getGeneralEquation();
     return (
       generalEquation.a * point.x +
@@ -52,6 +54,8 @@ class Line {
   }
 
   getDistanceFromPoint(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
     //https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
     const generalEquation = this.getGeneralEquation();
     return (
@@ -65,12 +69,16 @@ class Line {
   }
 
   getNormalLineWhichPassesThroughPoint(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
     const pointOnLine = this.getPointOnLineWhichIsClosestToPoint(point);
     const line = new Line(point, pointOnLine);
     return line;
   }
 
   getPointOnLineWhichIsClosestToPoint(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
     //https://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line
     const parametricEquation = this.getParametricEquation();
     const t =
@@ -82,11 +90,13 @@ class Line {
   }
 
   linearInterpolation(t) {
+    if (typeof t !== "number") throw new Error("Parametre t must be a number");
     const parametricEquation = this.getParametricEquation();
     return new Point(parametricEquation.x(t), parametricEquation.y(t));
   }
 
   getIntersectionPoint(line) {
+    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
     const generalEquation1 = this.getGeneralEquation();
     const generalEquation2 = line.getGeneralEquation();
     const a1 = generalEquation1.a;
@@ -101,7 +111,21 @@ class Line {
     return new Point(x, y);
   }
 
+  isParallelTo(line) {
+    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
+    return this.vector.isParallelTo(line.vector);
+  }
+
+  isEquivalentTo(line) {
+    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
+    const isPararelVector = this.vector.isEquivalentTo(line.vector);
+    const haveTheSamePoint = line.isLyingOnLine(this.start);
+    if (isPararelVector && haveTheSamePoint) return true;
+    return false;
+  }
+
   getIntersectionBetweenStartAndEndOfLine(line) {
+    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
     const intersectionPoint = this.getIntersectionPoint(line);
     if (intersectionPoint === null) {
       return null;
@@ -112,6 +136,8 @@ class Line {
   }
 
   getInterPolationRate(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
     //get t
     const parametricEquation = this.getParametricEquation();
     const t = (point.x - parametricEquation.x(0)) / this.vector.x;
@@ -123,6 +149,11 @@ class Line {
       Math.pow(this.start.x - this.end.x, 2) +
         Math.pow(this.start.y - this.end.y, 2)
     );
+  }
+
+  getAngleToLine(line) {
+    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
+    return this.vector.getAngleTo(line.vector);
   }
 
   get angle() {
