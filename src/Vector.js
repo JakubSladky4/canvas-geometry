@@ -10,6 +10,16 @@ class Vector {
     return new Vector(this.x + vector.x, this.y + vector.y);
   }
 
+  draw(ctx, point) {
+    if (!(point instanceof Point)) throw new Error("Parameter must be a point");
+    if (!(ctx instanceof CanvasRenderingContext2D))
+      throw new Error("Parameter must be a context");
+    ctx.beginPath();
+    ctx.moveTo(point.x, point.y);
+    ctx.lineTo(point.x + this.x, point.y + this.y);
+    ctx.stroke();
+  }
+
   multiplyByScalar(scalar) {
     if (typeof scalar !== "number")
       throw new Error("Parameter must be a number");

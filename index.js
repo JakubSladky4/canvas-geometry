@@ -1,6 +1,7 @@
 import Point from "./src/Point.js";
 import Line from "./src/Line.js";
 import Path from "./src/Path.js";
+import Circle from "./src/Circle.js";
 //get canvas element
 const canvas = document.getElementById("canvas");
 //get context
@@ -15,43 +16,26 @@ ctx.scale(scale, scale);
 ctx.lineWidth = 2.5;
 ctx.strokeStyle = "blue";
 
-const point1 = new Point(100, 100);
-const point2 = new Point(400, 400);
-//get line
+//generate random points for path
+const point1 = new Point(10, 10);
+const point2 = new Point(300, 300);
+const point3 = new Point(140, 200);
+const radius = 100;
+//create line from points
 const line = new Line(point1, point2);
-//draw line
 line.draw(ctx);
-//draw point
-point1.draw(ctx);
-point2.draw(ctx);
 
-ctx.strokeStyle = "green";
-const point3 = new Point(150, 200);
-const point4 = new Point(499, 300);
-//draw point
-point3.draw(ctx);
-point4.draw(ctx);
-//get line
-const line2 = new Line(point3, point4);
-//draw line
+//create second line from points
+const line2 = new Line(point2, point3);
 line2.draw(ctx);
+console.log(line.getAngleToLine(line2));
+const interline = line.getIntersectionPoint(line2);
+interline.draw(ctx, 5);
 
-ctx.strokeStyle = "red";
-//get intersection point
-const intersectionPoint = line2.getIntersectionPoint(line);
-console.log(intersectionPoint);
-intersectionPoint.draw(ctx);
-console.log(line2.isLyingOnLine(intersectionPoint));
-console.log(line.isLyingOnLine(intersectionPoint));
-
-//console lerp
-console.log(line2.getInterPolationRate(intersectionPoint));
-console.log(line.getInterPolationRate(intersectionPoint));
-
-//lies beetwen two points
-console.log(line2.getIntersectionBetweenStartAndEndOfLine(line));
-
-//draw point
-const vector = line2.vector;
-const vector2 = line.vector;
-console.log(vector.minus({ x: 0, y: 0 }));
+//create circle from point and radius
+const circle = new Circle(point3, radius);
+circle.draw(ctx);
+const intersect = circle.getIntersectionWithLine(line);
+console.log(intersect);
+intersect[0].draw(ctx, 5);
+intersect[1].draw(ctx, 5);

@@ -1,9 +1,12 @@
 import Point from "./Point.js";
 import Vector from "./Vector.js";
+import Path from "./Path.js";
 class Line {
   constructor(point1, point2) {
     this.start = new Point(point1.x, point1.y);
     this.end = new Point(point2.x, point2.y);
+    if (this.start.x === this.end.x && this.start.y === this.end.y)
+      throw new Error("Points must be different");
     this.middle = new Point(
       (this.start.x + this.end.x) / 2,
       (this.start.y + this.end.y) / 2
@@ -11,6 +14,8 @@ class Line {
   }
 
   draw(ctx) {
+    if (!(ctx instanceof CanvasRenderingContext2D))
+      throw new Error("Parameter must be a context");
     ctx.beginPath();
     ctx.moveTo(this.start.x, this.start.y);
     ctx.lineTo(this.end.x, this.end.y);
@@ -18,27 +23,125 @@ class Line {
   }
 
   get slope() {
+    if (this.start.x === this.end.x && this.end.y - this.start.y > 0)
+      return Infinity;
+    if (this.start.x === this.end.x && this.end.y - this.start.y < 0)
+      return Infinity * -1;
     return (this.end.y - this.start.y) / (this.end.x - this.start.x);
   }
 
-  getParametricEquation() {
+  getParametricEquation(asString = false) {
     const vector = this.vector;
     const point = this.start;
+    if (asString) {
+      return `
+      x(t) = ${point.x} + ${vector.x} * t
+      y(t) = ${point.y} + ${vector.y} * t
+      `;
+    }
     return {
       x: (t) => point.x + vector.x * t,
       y: (t) => point.y + vector.y * t,
     };
   }
 
-  getGeneralEquation() {
+  getDirectiveEquation(asString = false) {
+    const m = this.slope;
+    const n = this.start.y - m * this.start.x;
+    if (asString) {
+      return `
+      y = ${m} * x + ${n}
+      `;
+    }
+    return {
+      a: m,
+      b: n,
+    };
+  }
+
+  getGeneralEquation(asString = false) {
     const a = this.end.y - this.start.y;
     const b = this.start.x - this.end.x;
     const c = this.end.x * this.start.y - this.start.x * this.end.y;
+    if (asString) {
+      return `
+      ${a}x + ${b}y + ${c} = 0
+      `;
+    }
     return {
       a: a,
       b: b,
       c: c,
     };
+  }
+
+  getRandomPointOnLine(betweenStartAndEnd = true, minLerp = 0, maxLerp = 1) {
+    if (typeof betweenStartAndEnd !== "boolean")
+      throw new Error("Parametre betweenStartAndEnd must be a boolean");
+    if (typeof minLerp !== "number" || typeof maxLerp !== "number")
+      throw new Error("Parametres minLerp and maxLerp must be a number");
+    if (minLerp > maxLerp)
+      throw new Error("Parametre minLerp must be less than maxLerp");
+    if (betweenStartAndEnd) {
+      return this.linearInterpolation(Math.random());
+    }
+    return this.this.linearInterpolation(
+      Math.random() * (maxLerp - minLerp) + minLerp
+    );
+  }
+
+  getYCoordinate(x) {
+    if (typeof x !== "number") throw new Error("Parametre x must be a number");
+    if (x === this.start.x) return this.start.y;
+    if (x === this.end.x) return this.end.y;
+    if (this.slope === Infinity || this.slope === Infinity * -1) return null;
+    return this.slope * (x - this.start.x) + this.start.y;
+  }
+
+  getPointFromXCoordinates(x) {
+    if (typeof x !== "number") throw new Error("Parametre x must be a number");
+    if (x === this.start.x) return new Point(x, this.start.y);
+    if (x === this.end.x) return new Point(x, this.end.y);
+    if (this.slope === Infinity || this.slope === Infinity * -1) return null;
+    return new Point(x, this.getYCoordinate(x));
+  }
+
+  getXCoordinate(y) {
+    if (typeof y !== "number") throw new Error("Parametre y must be a number");
+    if (y === this.start.y) return this.start.x;
+    if (y === this.end.y) return this.end.x;
+    if (this.slope === 0) return null;
+    return (y - this.start.y) / this.slope + this.start.x;
+  }
+
+  getPointFromYCoordinates(y) {
+    if (typeof y !== "number") throw new Error("Parametre y must be a number");
+    if (y === this.start.y) return new Point(this.start.x, y);
+    if (y === this.end.y) return new Point(this.end.x, y);
+    if (this.slope === 0) return null;
+    return new Point(this.getXCoordinate(y), y);
+  }
+
+  get definitionRange() {
+    //Only between start and end
+    return {
+      x: {
+        min: Math.min(this.start.x, this.end.x),
+        max: Math.max(this.start.x, this.end.x),
+      },
+      y: {
+        min: Math.min(this.start.y, this.end.y),
+        max: Math.max(this.start.y, this.end.y),
+      },
+    };
+  }
+
+  getPointFromYCoordinates(y) {
+    if (typeof y !== "number") throw new Error("Parametre y must be a number");
+    if (y === this.start.y) return new Point(this.start.x, y);
+    if (y === this.end.y) return new Point(this.end.x, y);
+    if (this.slope === 0) return null;
+    return new Point(this.getXCoordinate(y), y);
   }
 
   isLyingOnLine(point) {
@@ -51,6 +154,32 @@ class Line {
         generalEquation.c ===
       0
     );
+  }
+
+  isLyingOnLineBeetweenStartAndEnd(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
+    if (!this.isLyingOnLine(point)) return false;
+    const definitionRange = this.definitionRange;
+    if (
+      this.getInterPolationRate(point) >= 0 &&
+      this.getInterPolationRate(point) <= 1
+    )
+      return true;
+    return false;
+  }
+
+  getPathFromLineWithNumberOfPoints(numberOfPoints) {
+    if (typeof numberOfPoints !== "number")
+      throw new Error("Parametre numberOfPoints must be a number");
+    if (numberOfPoints < 2)
+      throw new Error("numberOfPoints must be at least 2");
+    const pathArray = [];
+    const howMuchToAdd = 1 / (numberOfPoints - 1);
+    for (let t = 0; t < 1; t += howMuchToAdd) {
+      pathArray.push(this.linearInterpolation(t));
+    }
+    return new Path(pathArray);
   }
 
   getDistanceFromPoint(point) {
@@ -68,7 +197,7 @@ class Line {
     );
   }
 
-  getNormalLineWhichPassesThroughPoint(point) {
+  getNormalLineWhichGoThroughPoint(point) {
     if (!(point instanceof Point))
       throw new Error("Parametre point must be a Point");
     const pointOnLine = this.getPointOnLineWhichIsClosestToPoint(point);
