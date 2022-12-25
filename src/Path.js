@@ -12,6 +12,7 @@ class Path {
       from: 0,
       to: 0,
     };
+    this.color = undefined;
   }
 
   addPoint(point) {
@@ -43,20 +44,35 @@ class Path {
     this._path = newPoints;
   }
 
-  draw(ctx) {
+  draw(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.moveTo(this._path[0].x, this._path[0].y);
     for (let i = 1; i < this._path.length; i++) {
       ctx.lineTo(this._path[i].x, this._path[i].y);
     }
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 
-  drawToNextPoint(ctx) {
+  drawToNextPoint(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.moveTo(
       this._path[this.drawAsLast.to].x,
@@ -68,14 +84,22 @@ class Path {
     );
     ctx.stroke();
     this.drawAsLast.to++;
+    ctx.strokeStyle = oldColor;
   }
 
-  drawFromTo(ctx, from = 0, to = this._path.length - 1) {
+  drawFromTo(ctx, from = 0, to = this._path.length - 1, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
     if (from < 0 || from >= this._path.length)
       throw new Error("from is out of range");
     if (to < 0) throw new Error("to is out of range");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     if (to >= this._path.length) to = this._path.length - 1;
     this.drawAsLast = { from: from, to: to };
     ctx.beginPath();
@@ -84,6 +108,7 @@ class Path {
       ctx.lineTo(this._path[i].x, this._path[i].y);
     }
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 }
 

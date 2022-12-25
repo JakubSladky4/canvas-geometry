@@ -12,6 +12,7 @@ class Rect {
     this.point2 = new Point(point.x + width, point.y);
     this.point3 = new Point(point.x + width, point.y + height);
     this.point4 = new Point(point.x, point.y + height);
+    this.color = undefined;
   }
 
   fill(ctx) {
@@ -30,12 +31,20 @@ class Rect {
     return this.width * this.height;
   }
 
-  draw(ctx) {
+  draw(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.rect(this.start.x, this.start.y, this.width, this.height);
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 
   get points() {

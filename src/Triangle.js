@@ -32,24 +32,42 @@ class Triangle {
       this.point2 = new Point(p1.x + p2.x, p1.y + p2.y);
       this.point3 = new Point(p1.x + p3.x, p1.y + p3.y);
     }
+    this.color = undefined;
   }
 
-  draw(ctx) {
+  draw(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
+    //
     ctx.beginPath();
     ctx.moveTo(this.point1.x, this.point1.y);
     ctx.lineTo(this.point2.x, this.point2.y);
     ctx.lineTo(this.point3.x, this.point3.y);
     ctx.lineTo(this.point1.x, this.point1.y);
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 
-  drawCircleInside(ctx) {
+  drawCircleInside(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     const circle = this.insideCircle;
     circle.draw(ctx);
+    ctx.strokeStyle = oldColor;
   }
 
   fill(ctx) {
@@ -70,11 +88,19 @@ class Triangle {
     return new Circle(center, radius);
   }
 
-  drawCircleOutside(ctx) {
+  drawCircleOutside(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     const circle = this.outsideCircle;
     circle.draw(ctx);
+    ctx.strokeStyle = oldColor;
   }
 
   get outsideCircle() {

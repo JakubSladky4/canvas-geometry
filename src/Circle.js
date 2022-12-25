@@ -9,19 +9,35 @@ class Circle {
       throw new Error("Parametre radius must be a number");
     this.centre = new Point(point.x, point.y);
     this.radius = radius;
+    this.color = undefined;
   }
 
-  draw(ctx) {
+  draw(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.arc(this.centre.x, this.centre.y, this.radius, 0, 2 * Math.PI);
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 
-  drawPartial(ctx, startAngle, endAngle) {
+  drawPartial(ctx, startAngle, endAngle, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.arc(
       this.centre.x,
@@ -32,6 +48,7 @@ class Circle {
       true
     );
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 
   getCentralEquation(asString = false) {
@@ -94,17 +111,15 @@ class Circle {
       return [point];
     }
     //There are two intersection points
+    const { m, n, r } = this.getCentralEquation();
     const lineEq = line.getDirectiveEquation();
     //Circle: (x - m)^2 + (y - n)^2 = r^2
     //Line: y = ax + b
     //x = (a^2 * m - a * n + b) / (a^2 + 1)
     //y = (a * m + n + a * b) / (a^2 + 1)
     var a = 1 + Math.pow(line.slope, 2);
-    var b = -this.centre.x * 2 + line.slope * (lineEq.b - this.centre.y) * 2;
-    var c =
-      Math.pow(this.centre.x, 2) +
-      Math.pow(lineEq.b - this.centre.y, 2) -
-      Math.pow(this.radius, 2);
+    var b = -m * 2 + line.slope * (lineEq.b - n) * 2;
+    var c = Math.pow(m, 2) + Math.pow(lineEq.b - n, 2) - Math.pow(r, 2);
     var intersections = [
       (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a),
       (-b - Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a),
@@ -116,6 +131,22 @@ class Circle {
       );
     }
     return intersections;
+  }
+
+  isTangentLine(line) {
+    if (!(line instanceof Line))
+      throw new Error("Parametre line must be a Line");
+    const distance = line.getDistanceFromPoint(this.centre);
+    return distance === this.radius;
+  }
+
+  getTangetLine(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
+    if (!this.isLyngOnCircle(point)) throw new Error("Point must be on circle");
+    //Ensure that line will have just one intersection point
+
+    return normaLizedLine;
   }
 
   getYFromXCoordinates(x) {

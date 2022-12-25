@@ -2,7 +2,10 @@ import Point from "./Point.js";
 import Vector from "./Vector.js";
 import Path from "./Path.js";
 class Line {
-  constructor(point1, point2) {
+  static isLimitedDefault = true;
+  static isLimitedDefaultMin = -100;
+  static isLimitedDefaultMax = 100;
+  constructor(point1, point2, isLimited = Line.isLimitedDefault) {
     this.start = new Point(point1.x, point1.y);
     this.end = new Point(point2.x, point2.y);
     if (this.start.x === this.end.x && this.start.y === this.end.y)
@@ -11,15 +14,40 @@ class Line {
       (this.start.x + this.end.x) / 2,
       (this.start.y + this.end.y) / 2
     );
+    this.isLimited = isLimited;
+    this.color = undefined;
   }
 
-  draw(ctx) {
+  draw(ctx, color = undefined) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    //Stroke style dealing;
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
+    //
+    if (this.isLimited) {
+      ctx.beginPath();
+      ctx.moveTo(this.start.x, this.start.y);
+      ctx.lineTo(this.end.x, this.end.y);
+      ctx.stroke();
+      //Stroke style dealing
+      ctx.strokeStyle = oldColor;
+      return;
+    }
+    //is not limited
     ctx.beginPath();
-    ctx.moveTo(this.start.x, this.start.y);
-    ctx.lineTo(this.end.x, this.end.y);
+    let pointMin = this.linearInterpolation(Line.isLimitedDefaultMin);
+    let pointMax = this.linearInterpolation(Line.isLimitedDefaultMax);
+    ctx.moveTo(pointMin.x, pointMin.y);
+    ctx.lineTo(pointMax.x, pointMax.y);
     ctx.stroke();
+    //Stroke style dealing
+    ctx.strokeStyle = oldColor;
   }
 
   get slope() {

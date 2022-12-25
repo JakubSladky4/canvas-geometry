@@ -2,6 +2,7 @@ class Vector {
   constructor(x, y) {
     this.x = x;
     this.y = y;
+    this.color = undefined;
   }
 
   plus(vector) {
@@ -10,14 +11,22 @@ class Vector {
     return new Vector(this.x + vector.x, this.y + vector.y);
   }
 
-  draw(ctx, point) {
+  draw(ctx, point, color = undefined) {
     if (!(point instanceof Point)) throw new Error("Parameter must be a point");
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
+    const oldColor = ctx.strokeStyle;
+    if (this.color) {
+      ctx.strokeStyle = this.color;
+    }
+    if (color) {
+      ctx.strokeStyle = color;
+    }
     ctx.beginPath();
     ctx.moveTo(point.x, point.y);
     ctx.lineTo(point.x + this.x, point.y + this.y);
     ctx.stroke();
+    ctx.strokeStyle = oldColor;
   }
 
   multiplyByScalar(scalar) {
