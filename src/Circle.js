@@ -1,6 +1,8 @@
 import Point from "./Point.js";
 import Path from "./Path.js";
 import Line from "./Line.js";
+import Intersection from "./Intersection.js";
+import Utils from "./utils.js";
 class Circle {
   constructor(point, radius) {
     if (!(point instanceof Point))
@@ -10,6 +12,8 @@ class Circle {
     this.centre = new Point(point.x, point.y);
     this.radius = radius;
     this.color = undefined;
+    this.type = "Circle";
+    this.id = Utils.getId();
   }
 
   draw(ctx, color = undefined) {
@@ -99,38 +103,8 @@ class Circle {
     };
   }
 
-  getIntersectionWithLine(line) {
-    if (!(line instanceof Line))
-      throw new Error("Parametre line must be a Line");
-    const distance = line.getDistanceFromPoint(this.centre);
-    if (distance > this.radius) return null;
-    if (distance === this.radius) {
-      const point = line.getPointOnLineWhichIsClosestToPoint(point)(
-        this.radius
-      );
-      return [point];
-    }
-    //There are two intersection points
-    const { m, n, r } = this.getCentralEquation();
-    const lineEq = line.getDirectiveEquation();
-    //Circle: (x - m)^2 + (y - n)^2 = r^2
-    //Line: y = ax + b
-    //x = (a^2 * m - a * n + b) / (a^2 + 1)
-    //y = (a * m + n + a * b) / (a^2 + 1)
-    var a = 1 + Math.pow(line.slope, 2);
-    var b = -m * 2 + line.slope * (lineEq.b - n) * 2;
-    var c = Math.pow(m, 2) + Math.pow(lineEq.b - n, 2) - Math.pow(r, 2);
-    var intersections = [
-      (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a),
-      (-b - Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a),
-    ];
-    for (var i = 0; i < intersections.length; i++) {
-      intersections[i] = new Point(
-        intersections[i],
-        line.slope * intersections[i] + lineEq.b
-      );
-    }
-    return intersections;
+  getIntersectionWith(shape) {
+    return Intersection.getIntersection(this, shape);
   }
 
   isTangentLine(line) {

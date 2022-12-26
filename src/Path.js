@@ -1,5 +1,7 @@
 import Vector from "./Vector.js";
 import Point from "./Point.js";
+import Line from "./Line.js";
+import Utils from "./utils.js";
 class Path {
   constructor(arrayOfPoints = []) {
     if (!Array.isArray(arrayOfPoints)) throw new Error("Path must be an array");
@@ -13,6 +15,8 @@ class Path {
       to: 0,
     };
     this.color = undefined;
+    this.type = "Path";
+    this.id = Utils.getId();
   }
 
   addPoint(point) {
@@ -25,6 +29,14 @@ class Path {
 
   getPoint(index) {
     return this._path[index];
+  }
+
+  get lines() {
+    let lines = [];
+    for (let i = 0; i < this._path.length - 1; i++) {
+      lines.push(new Line(this._path[i], this._path[i + 1]));
+    }
+    return lines;
   }
 
   multiplyNumberOfPoints(multiplicator) {

@@ -1,13 +1,16 @@
 import Vector from "./Vector.js";
+import Utils from "./utils.js";
 class Point {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.color = undefined;
     this.radius = 2;
+    this.type = "Point";
+    this.id = Utils.getId();
   }
 
-  draw(ctx, radius = this.radius, color = undefined) {
+  draw(ctx, color = undefined, radius = this.radius) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
     const oldColor = ctx.fillStyle;
@@ -17,7 +20,6 @@ class Point {
     if (color) {
       ctx.fillStyle = color;
     }
-    console.log(color);
     //
     ctx.beginPath();
     ctx.arc(this.x, this.y, radius, 0, 2 * Math.PI);

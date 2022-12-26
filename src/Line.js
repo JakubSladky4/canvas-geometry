@@ -1,6 +1,8 @@
 import Point from "./Point.js";
 import Vector from "./Vector.js";
 import Path from "./Path.js";
+import Intersection from "./Intersection.js";
+import Utils from "./utils.js";
 class Line {
   static isLimitedDefault = true;
   static isLimitedDefaultMin = -100;
@@ -16,6 +18,8 @@ class Line {
     );
     this.isLimited = isLimited;
     this.color = undefined;
+    this.type = "Line";
+    this.id = Utils.getId();
   }
 
   draw(ctx, color = undefined) {
@@ -41,8 +45,8 @@ class Line {
     }
     //is not limited
     ctx.beginPath();
-    let pointMin = this.linearInterpolation(Line.isLimitedDefaultMin);
-    let pointMax = this.linearInterpolation(Line.isLimitedDefaultMax);
+    let pointMin = this.lerp(Line.isLimitedDefaultMin);
+    let pointMax = this.lerp(Line.isLimitedDefaultMax);
     ctx.moveTo(pointMin.x, pointMin.y);
     ctx.lineTo(pointMax.x, pointMax.y);
     ctx.stroke();
@@ -111,11 +115,9 @@ class Line {
     if (minLerp > maxLerp)
       throw new Error("Parametre minLerp must be less than maxLerp");
     if (betweenStartAndEnd) {
-      return this.linearInterpolation(Math.random());
+      return this.lerp(Math.random());
     }
-    return this.this.linearInterpolation(
-      Math.random() * (maxLerp - minLerp) + minLerp
-    );
+    return this.this.lerp(Math.random() * (maxLerp - minLerp) + minLerp);
   }
 
   getYCoordinate(x) {
@@ -188,12 +190,7 @@ class Line {
     if (!(point instanceof Point))
       throw new Error("Parametre point must be a Point");
     if (!this.isLyingOnLine(point)) return false;
-    const definitionRange = this.definitionRange;
-    if (
-      this.getInterPolationRate(point) >= 0 &&
-      this.getInterPolationRate(point) <= 1
-    )
-      return true;
+    if (this.getLerp(point) >= 0 && this.getLerp(point) <= 1) return true;
     return false;
   }
 
@@ -205,7 +202,7 @@ class Line {
     const pathArray = [];
     const howMuchToAdd = 1 / (numberOfPoints - 1);
     for (let t = 0; t < 1; t += howMuchToAdd) {
-      pathArray.push(this.linearInterpolation(t));
+      pathArray.push(this.lerp(t));
     }
     return new Path(pathArray);
   }
@@ -246,26 +243,14 @@ class Line {
     return new Point(parametricEquation.x(t), parametricEquation.y(t));
   }
 
-  linearInterpolation(t) {
+  lerp(t) {
     if (typeof t !== "number") throw new Error("Parametre t must be a number");
     const parametricEquation = this.getParametricEquation();
     return new Point(parametricEquation.x(t), parametricEquation.y(t));
   }
 
-  getIntersectionPoint(line) {
-    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
-    const generalEquation1 = this.getGeneralEquation();
-    const generalEquation2 = line.getGeneralEquation();
-    const a1 = generalEquation1.a;
-    const b1 = generalEquation1.b;
-    const c1 = generalEquation1.c;
-    const a2 = generalEquation2.a;
-    const b2 = generalEquation2.b;
-    const c2 = generalEquation2.c;
-    const x = (b1 * c2 - b2 * c1) / (a1 * b2 - a2 * b1);
-    const y = (a2 * c1 - a1 * c2) / (a1 * b2 - a2 * b1);
-    if (isNaN(x) || isNaN(y)) return null;
-    return new Point(x, y);
+  getIntersectionWith(shape) {
+    return Intersection.getIntersection(this, shape);
   }
 
   isParallelTo(line) {
@@ -281,18 +266,7 @@ class Line {
     return false;
   }
 
-  getIntersectionBetweenStartAndEndOfLine(line) {
-    if (!line instanceof Line) throw new Error("Parametre line must be a Line");
-    const intersectionPoint = this.getIntersectionPoint(line);
-    if (intersectionPoint === null) {
-      return null;
-    }
-    const rate = this.getInterPolationRate(intersectionPoint);
-    if (rate <= 0 || rate >= 1) return null;
-    return intersectionPoint;
-  }
-
-  getInterPolationRate(point) {
+  getLerp(point) {
     if (!(point instanceof Point))
       throw new Error("Parametre point must be a Point");
     //get t
@@ -311,6 +285,10 @@ class Line {
   getAngleToLine(line) {
     if (!line instanceof Line) throw new Error("Parametre line must be a Line");
     return this.vector.getAngleTo(line.vector);
+  }
+
+  get lines() {
+    return [this];
   }
 
   get angle() {

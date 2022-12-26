@@ -1,8 +1,11 @@
+import Utils from "./utils.js";
 class Vector {
   constructor(x, y) {
     this.x = x;
     this.y = y;
     this.color = undefined;
+    this.type = "Vector";
+    this.id = Utils.getId();
   }
 
   plus(vector) {

@@ -2,6 +2,7 @@ import Point from "./Point";
 import Vector from "./Vector";
 import Line from "./Line";
 import Circle from "./Circle";
+import Utils from "./utils";
 class Triangle {
   constructor(p1, p2, p3) {
     //p1 must be a point
@@ -33,6 +34,8 @@ class Triangle {
       this.point3 = new Point(p1.x + p3.x, p1.y + p3.y);
     }
     this.color = undefined;
+    this.type = "Triangle";
+    this.id = Utils.getId();
   }
 
   draw(ctx, color = undefined) {
