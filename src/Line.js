@@ -250,8 +250,12 @@ class Line {
     if (!(point instanceof Point))
       throw new Error("Parametre point must be a Point");
     //get t
-    this.getDistanceFromPoint(point);
-    const t = this.start.getLegthTo(point) / this.length;
+    let t;
+    if (typeof this.slope === "undefined") {
+      t = (point.y - this.start.y) / this.vector.y;
+      return t;
+    }
+    t = (point.x - this.start.x) / this.vector.x;
     return t;
   }
 

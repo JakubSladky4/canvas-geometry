@@ -18,8 +18,8 @@ class IntersectionPoint {
     this.#y = point.y;
     this.#originSubShape = originSubShape;
     this.#affectedSubShape = affectedSubShape;
-    this.#lerpFromOrigin = originSubShape?.getLerp(point) ?? null;
-    this.#lerpFromAffected = affectedSubShape?.getLerp(point) ?? null;
+    this.#lerpFromOrigin = originSubShape?.getLerp(point);
+    this.#lerpFromAffected = affectedSubShape?.getLerp(point);
   }
 
   get point() {
@@ -51,9 +51,10 @@ class IntersectionPoint {
   }
 
   get isTrue() {
-    if (!(this.#lerpFromOrigin >= 0 && this.#lerpFromOrigin <= 1)) return false;
-    if (!(this.#lerpFromAffected >= 0 && this.#lerpFromAffected <= 1))
+    if (this.#lerpFromOrigin === null || this.#lerpFromAffected === null)
       return false;
+    if (this.#lerpFromOrigin < 0 || this.#lerpFromOrigin > 1) return false;
+    if (this.#lerpFromAffected < 0 || this.#lerpFromAffected > 1) return false;
     return true;
   }
 
@@ -101,7 +102,9 @@ class Intersection {
 
   draw(ctx, color = undefined, radius = undefined) {
     this.#intersectionPoints.forEach((point) => {
-      if (point.isTrue) point.draw(ctx, color, radius);
+      if (point.isTrue) {
+        point.draw(ctx, color, radius);
+      }
     });
   }
 
@@ -141,6 +144,7 @@ class Intersection {
         });
       }
     }
+    if (interSectionArray.length === 0) return null;
     return new Intersection(interSectionArray, shape1, shape2);
   }
 
@@ -195,7 +199,6 @@ class Intersection {
   }
 
   static getIntersectionCircleLine(originShape, affectedShape) {
-    debugger;
     const distance = affectedShape.getDistanceFromPoint(originShape.centre);
     if (distance > originShape.radius) return [];
     if (distance === originShape.radius) {
@@ -234,7 +237,41 @@ class Intersection {
     return intersections;
   }
 
-  static getIntersectionCircleCircle(originShape, affectedShape) {}
+  static getIntersectionCircleCircle(originShape, affectedShape) {
+    const distance = originShape.centre.getLegthTo(affectedShape.centre);
+    if (distance > originShape.radius + affectedShape.radius) return [];
+    if (distance < Math.abs(originShape.radius - affectedShape.radius))
+      return [];
+    if (distance === originShape.radius + affectedShape.radius) {
+      //There is one intersection point
+      const lineBetweenCentres = new Line(
+        originShape.centre,
+        affectedShape.centre
+      );
+      const shareOfRadius = originShape.radius / distance;
+      const point = lineBetweenCentres.lerp(shareOfRadius);
+      return [point];
+    }
+    //There are two intersection points
+    const originCetalEquation = originShape.getCentralEquation();
+    const m1 = originCetalEquation.m;
+    const n1 = originCetalEquation.n;
+    const r1 = originCetalEquation.r;
+    const affectedCentralEquation = affectedShape.getCentralEquation();
+    const m2 = affectedCentralEquation.m;
+    const n2 = affectedCentralEquation.n;
+    const r2 = affectedCentralEquation.r;
+    //Circle 1: (x - m1)^2 + (y - n1)^2 = r1^2
+    //Circle 2: (x - m2)^2 + (y - n2)^2 = r2^2
+    const d = Math.sqrt(Math.pow(m1 - m2, 2) + Math.pow(n1 - n2, 2));
+    const l = (Math.pow(r1, 2) - Math.pow(r2, 2) + Math.pow(d, 2)) / (2 * d);
+    const h = Math.sqrt(Math.pow(r1, 2) - Math.pow(l, 2));
+    const x1 = (l / d) * (m2 - m1) + (h / d) * (n2 - n1) + m1;
+    const x2 = (l / d) * (m2 - m1) - (h / d) * (n2 - n1) + m1;
+    const y1 = (l / d) * (n2 - n1) - (h / d) * (m2 - m1) + n1;
+    const y2 = (l / d) * (n2 - n1) + (h / d) * (m2 - m1) + n1;
+    return [new Point(x1, y1), new Point(x2, y2)];
+  }
 }
 
 export default Intersection;

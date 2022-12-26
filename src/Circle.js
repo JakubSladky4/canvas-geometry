@@ -207,13 +207,12 @@ class Circle {
   getLerp(point) {
     if (!(point instanceof Point))
       throw new Error("Parametre point must be a Point");
-    if (!this.isLyngOnCircle(point)) return null;
     const angle = new Line(this.centre, point).angle;
-    return angle / (2 * Math.PI);
+    return Math.abs(angle / (2 * Math.PI));
   }
 
   simplify() {
-    return this;
+    return [this];
   }
 }
 
