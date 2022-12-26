@@ -1,64 +1,86 @@
 import Point from "./Point.js";
 import Line from "./Line.js";
 import Circle from "./Circle.js";
-class Intersection {
-  static supportedShapes = ["Line", "Circle", "Rect", "Triangle", "Path"];
-  #point;
-  #originShape;
-  #originalSubShape;
-  #affectedShape;
+
+class IntersectionPoint {
+  #originSubShape;
   #affectedSubShape;
   #lerpFromOrigin;
   #lerpFromAffected;
-  #isInfinite;
-
-  constructor(
-    point,
-    originShape,
-    affectedShape,
-    originalSubShape,
-    affectedSubShape
-  ) {
-    //point must be a Point
+  #point;
+  #x;
+  #y;
+  constructor(point, originSubShape, affectedSubShape) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
     this.#point = point;
-    this.#originShape = originShape;
-    this.#affectedShape = affectedShape;
-    this.#originalSubShape = originalSubShape;
+    this.#x = point.x;
+    this.#y = point.y;
+    this.#originSubShape = originSubShape;
     this.#affectedSubShape = affectedSubShape;
-    this.#lerpFromOrigin = null;
-    this.#lerpFromAffected = null;
-    this.#isInfinite = false;
-    if (point === Infinity) {
-      this.#isInfinite = true;
-    }
+    this.#lerpFromOrigin = originSubShape?.getLerp(point) ?? null;
+    this.#lerpFromAffected = affectedSubShape?.getLerp(point) ?? null;
   }
 
   get point() {
     return this.#point;
   }
 
-  get isInfinite() {
-    return this.#isInfinite;
+  get x() {
+    return this.#x;
   }
 
-  get originalSubShape() {
-    return this.#originalSubShape;
+  get y() {
+    return this.#y;
+  }
+
+  get originSubShape() {
+    return this.#originSubShape;
   }
 
   get affectedSubShape() {
     return this.#affectedSubShape;
   }
 
-  get lerpFromOrigin() {}
-
-  get lerpFromAffected() {}
-
-  set lerpFromOrigin(value) {
-    this.#lerpFromOrigin = value;
+  get lerpFromOrigin() {
+    return this.#lerpFromOrigin;
   }
 
-  set lerpFromAffected(value) {
-    this.#lerpFromAffected = value;
+  get lerpFromAffected() {
+    return this.#lerpFromAffected;
+  }
+
+  get isTrue() {
+    if (!(this.#lerpFromOrigin >= 0 && this.#lerpFromOrigin <= 1)) return false;
+    if (!(this.#lerpFromAffected >= 0 && this.#lerpFromAffected <= 1))
+      return false;
+    return true;
+  }
+
+  draw(ctx, color = undefined, radius = undefined) {
+    this.point.draw(ctx, color, radius);
+  }
+}
+
+class Intersection {
+  static supportedShapes = ["Line", "Circle", "Rect", "Triangle", "Path"];
+  #intersectionPoints;
+  #originShape;
+  #affectedShape;
+
+  constructor(IntersectionPoints, originShape, affectedShape) {
+    //IntersectionPoints must be and array of IntersectionPoint
+    if (!Array.isArray(IntersectionPoints))
+      throw new Error("Parametre must be an array");
+    if (IntersectionPoints.length === 0) return null;
+
+    this.#intersectionPoints = IntersectionPoints;
+    this.#originShape = originShape;
+    this.#affectedShape = affectedShape;
+  }
+
+  get intersections() {
+    return this.#intersectionPoints;
   }
 
   get originShape() {
@@ -75,6 +97,18 @@ class Intersection {
 
   get affectedTrueShape() {
     return Intersection.getTrueShape(this.#affectedShape);
+  }
+
+  draw(ctx, color = undefined, radius = undefined) {
+    this.#intersectionPoints.forEach((point) => {
+      if (point.isTrue) point.draw(ctx, color, radius);
+    });
+  }
+
+  drawAll(ctx, color = undefined, radius = undefined) {
+    this.#intersectionPoints.forEach((point) => {
+      point.draw(ctx, color, radius);
+    });
   }
 
   static getIntersection(shape1, shape2) {
@@ -98,24 +132,16 @@ class Intersection {
           trueShape_2[j]
         );
         point.forEach((point) => {
-          const intersection = new Intersection(
+          const intersection = new IntersectionPoint(
             point,
-            shape1,
-            shape2,
             trueShape_1[i],
             trueShape_2[j]
           );
-          if (trueShape_1[i].type === "Line") {
-            intersection.lerpFromOrigin = trueShape_1[j].getLerp(point);
-          }
-          if (trueShape_2[j].type === "Line") {
-            intersection.lerpFromAffected = trueShape_2[j].getLerp(point);
-          }
           interSectionArray.push(intersection);
         });
       }
     }
-    return interSectionArray;
+    return new Intersection(interSectionArray, shape1, shape2);
   }
 
   static chooseAndDoRightIntersectionFunction(shape1, shape2) {
@@ -147,8 +173,7 @@ class Intersection {
   }
 
   static getTrueShape(shape) {
-    if (shape.lines) return shape.lines;
-    return [shape];
+    return shape.simplify();
   }
   //general intersection methods
 
@@ -182,12 +207,19 @@ class Intersection {
     //There are two intersection points
     const { m, n, r } = originShape.getCentralEquation();
     const lineEq = affectedShape.getDirectiveEquation();
+    if (lineEq.a === undefined) {
+      //Line is vertical
+      const x = affectedShape.start.x;
+      const y1 = Math.sqrt(Math.pow(r, 2) - Math.pow(x - m, 2)) + n;
+      const y2 = -Math.sqrt(Math.pow(r, 2) - Math.pow(x - m, 2)) + n;
+      return [new Point(x, y1), new Point(x, y2)];
+    }
     //Circle: (x - m)^2 + (y - n)^2 = r^2
     //Line: y = ax + b
     //x = (a^2 * m - a * n + b) / (a^2 + 1)
     //y = (a * m + n + a * b) / (a^2 + 1)
-    var a = 1 + Math.pow(affectedShape.slope, 2);
-    var b = -m * 2 + affectedShape.slope * (lineEq.b - n) * 2;
+    var a = 1 + Math.pow(lineEq.a, 2);
+    var b = -m * 2 + lineEq.a * (lineEq.b - n) * 2;
     var c = Math.pow(m, 2) + Math.pow(lineEq.b - n, 2) - Math.pow(r, 2);
     var intersections = [
       (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a),
@@ -196,7 +228,7 @@ class Intersection {
     for (var i = 0; i < intersections.length; i++) {
       intersections[i] = new Point(
         intersections[i],
-        affectedShape.slope * intersections[i] + lineEq.b
+        lineEq.a * intersections[i] + lineEq.b
       );
     }
     return intersections;

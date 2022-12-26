@@ -198,6 +198,23 @@ class Circle {
     ctx.arc(this.centre.x, this.centre.y, this.radius, 0, 2 * Math.PI);
     ctx.fill();
   }
+
+  lerp(t) {
+    const angle = 2 * Math.PI * t;
+    return this.centre.getNewPointMovedByLengthAndAngle(this.radius, angle);
+  }
+
+  getLerp(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
+    if (!this.isLyngOnCircle(point)) return null;
+    const angle = new Line(this.centre, point).angle;
+    return angle / (2 * Math.PI);
+  }
+
+  simplify() {
+    return this;
+  }
 }
 
 export default Circle;

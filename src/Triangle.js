@@ -58,21 +58,6 @@ class Triangle {
     ctx.strokeStyle = oldColor;
   }
 
-  drawCircleInside(ctx, color = undefined) {
-    if (!(ctx instanceof CanvasRenderingContext2D))
-      throw new Error("Parameter must be a context");
-    const oldColor = ctx.strokeStyle;
-    if (this.color) {
-      ctx.strokeStyle = this.color;
-    }
-    if (color) {
-      ctx.strokeStyle = color;
-    }
-    const circle = this.insideCircle;
-    circle.draw(ctx);
-    ctx.strokeStyle = oldColor;
-  }
-
   fill(ctx) {
     if (!(ctx instanceof CanvasRenderingContext2D))
       throw new Error("Parameter must be a context");
@@ -91,57 +76,11 @@ class Triangle {
     return new Circle(center, radius);
   }
 
-  drawCircleOutside(ctx, color = undefined) {
-    if (!(ctx instanceof CanvasRenderingContext2D))
-      throw new Error("Parameter must be a context");
-    const oldColor = ctx.strokeStyle;
-    if (this.color) {
-      ctx.strokeStyle = this.color;
-    }
-    if (color) {
-      ctx.strokeStyle = color;
-    }
-    const circle = this.outsideCircle;
-    circle.draw(ctx);
-    ctx.strokeStyle = oldColor;
-  }
-
   get outsideCircle() {
     const [hight1, hight2] = this.hights;
     const center = hight1.getIntersectionWith(hight2);
     const radius = center.getLegthTo(this.point1);
     return new Circle(center, radius);
-  }
-
-  drawTriangleInside(ctx) {
-    if (!(ctx instanceof CanvasRenderingContext2D))
-      throw new Error("Parameter must be a context");
-    //Get mindles of lines
-    const [line1, line2, line3] = this.lines;
-    //draw lines
-    ctx.beginPath();
-    ctx.moveTo(line1.start.x, line1.start.y);
-    ctx.lineTo(line1.end.x, line1.end.y);
-    ctx.moveToTo(line2.start.x, line2.start.y);
-    ctx.lineTo(line2.end.x, line2.end.y);
-    ctx.moveToTo(line3.start.x, line3.start.y);
-    ctx.lineTo(line3.end.x, line3.end.y);
-    ctx.stroke();
-  }
-
-  drawWeighbridges(ctx) {
-    if (!(ctx instanceof CanvasRenderingContext2D))
-      throw new Error("Parameter must be a context");
-    const [line1, line2, line3] = this.weighbridges;
-    //draw the triangle
-    ctx.beginPath();
-    ctx.moveTo(line1.start.x, line1.start.y);
-    ctx.lineTo(line1.end.x, line1.end.y);
-    ctx.moveToTo(line2.start.x, line2.start.y);
-    ctx.lineTo(line2.end.x, line2.end.y);
-    ctx.moveToTo(line3.start.x, line3.start.y);
-    ctx.lineTo(line3.end.x, line3.end.y);
-    ctx.stroke();
   }
 
   get isEquilateral() {
@@ -246,6 +185,10 @@ class Triangle {
 
   get points() {
     return [this.point1, this.point2, this.point3];
+  }
+
+  simplify() {
+    return this.lines;
   }
 }
 

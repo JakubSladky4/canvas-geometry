@@ -17,18 +17,16 @@ ctx.scale(scale, scale);
 ctx.lineWidth = 2.5;
 ctx.strokeStyle = "red";
 
-const point3 = new Point(140, 200);
-const radius = 100;
-//create line from points
+const point1 = new Point(100, 100);
+const point2 = new Point(200, 100);
+const point3 = new Point(150, 30);
+const point4 = new Point(150, 200);
 
-const rect = new Rect(new Point(30, 30), 100, 100);
-rect.draw(ctx, "red");
-
-//create circle from point and radius
-const circle = new Circle(point3, radius);
-circle.draw(ctx);
-
-console.log(circle.getIntersectionWith(rect));
-circle.getIntersectionWith(rect).forEach((i) => {
-  i.point.draw(ctx, "black", 10);
-});
+//make 2 lines and draw them
+const line1 = new Line(point1, point2);
+const line2 = new Line(point3, point4);
+line1.draw(ctx);
+line2.draw(ctx);
+const intersection = line2.getIntersectionWith(line1);
+console.log(intersection);
+intersection.drawAll(ctx, "blue", 4);

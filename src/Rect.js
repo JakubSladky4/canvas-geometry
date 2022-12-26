@@ -68,6 +68,10 @@ class Rect {
       new Line(this.point4, this.point1),
     ];
   }
+
+  simplify() {
+    return this.lines;
+  }
 }
 
 export default Rect;

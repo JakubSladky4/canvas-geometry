@@ -31,14 +31,6 @@ class Path {
     return this._path[index];
   }
 
-  get lines() {
-    let lines = [];
-    for (let i = 0; i < this._path.length - 1; i++) {
-      lines.push(new Line(this._path[i], this._path[i + 1]));
-    }
-    return lines;
-  }
-
   multiplyNumberOfPoints(multiplicator) {
     if (typeof multiplicator !== "number")
       throw new Error("Parameter must be a number");
@@ -121,6 +113,14 @@ class Path {
     }
     ctx.stroke();
     ctx.strokeStyle = oldColor;
+  }
+
+  simplify() {
+    let lines = [];
+    for (let i = 0; i < this._path.length - 1; i++) {
+      lines.push(new Line(this._path[i], this._path[i + 1]));
+    }
+    return lines;
   }
 }
 

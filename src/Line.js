@@ -55,10 +55,7 @@ class Line {
   }
 
   get slope() {
-    if (this.start.x === this.end.x && this.end.y - this.start.y > 0)
-      return Infinity;
-    if (this.start.x === this.end.x && this.end.y - this.start.y < 0)
-      return Infinity * -1;
+    if (this.start.x === this.end.x) return undefined;
     return (this.end.y - this.start.y) / (this.end.x - this.start.x);
   }
 
@@ -249,6 +246,15 @@ class Line {
     return new Point(parametricEquation.x(t), parametricEquation.y(t));
   }
 
+  getLerp(point) {
+    if (!(point instanceof Point))
+      throw new Error("Parametre point must be a Point");
+    //get t
+    this.getDistanceFromPoint(point);
+    const t = this.start.getLegthTo(point) / this.length;
+    return t;
+  }
+
   getIntersectionWith(shape) {
     return Intersection.getIntersection(this, shape);
   }
@@ -266,15 +272,6 @@ class Line {
     return false;
   }
 
-  getLerp(point) {
-    if (!(point instanceof Point))
-      throw new Error("Parametre point must be a Point");
-    //get t
-    const parametricEquation = this.getParametricEquation();
-    const t = (point.x - parametricEquation.x(0)) / this.vector.x;
-    return t;
-  }
-
   get length() {
     return Math.sqrt(
       Math.pow(this.start.x - this.end.x, 2) +
@@ -287,8 +284,8 @@ class Line {
     return this.vector.getAngleTo(line.vector);
   }
 
-  get lines() {
-    return [this];
+  get line() {
+    return this;
   }
 
   get angle() {
@@ -297,6 +294,10 @@ class Line {
 
   get vector() {
     return new Vector(this.end.x - this.start.x, this.end.y - this.start.y);
+  }
+
+  simplify() {
+    return [this];
   }
 }
 
