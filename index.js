@@ -1,9 +1,7 @@
 import Point from "./src/Point.js";
 import Line from "./src/Line.js";
+import BezierCurve from "./src/BezierCurve.js";
 import Path from "./src/Path.js";
-import Circle from "./src/Circle.js";
-import Rect from "./src/Rect.js";
-import Pencil from "./src/Pencil.js";
 //get canvas element
 const canvas = document.getElementById("canvas");
 //get context
@@ -15,8 +13,33 @@ const scale = window.devicePixelRatio; // Change to 1 on retina screens to see b
 canvas.width = Math.floor(size * scale);
 canvas.height = Math.floor(size * scale);
 ctx.scale(scale, scale);
-ctx.lineWidth = 2.5;
-ctx.strokeStyle = "red";
 
-const pencil = new Pencil(ctx);
-pencil.start();
+//create two lines
+const line1 = new Line(new Point(30, 30), new Point(30, 300));
+const line2 = new Line(new Point(31, 30), new Point(300, 40));
+const line3 = new Line(new Point(310, 50), new Point(310, 400));
+//draw lines
+line1.draw(ctx);
+line2.draw(ctx);
+
+//create new bezier curve
+const bezierCurve = new BezierCurve([line1, line2, line3]);
+const path = new Path([]);
+
+let lerp = 0;
+function animate() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  line1.draw(ctx);
+  line2.draw(ctx);
+  line3.draw(ctx);
+  bezierCurve.drawHelper(ctx, "blue", 4);
+  const point = bezierCurve.lerp(lerp);
+  point.draw(ctx, "green", 5);
+  path.addPoint(point);
+  path.draw(ctx, "red");
+  if (!(lerp > 1)) {
+    requestAnimationFrame(animate);
+  }
+  lerp += 0.01;
+}
+animate();
